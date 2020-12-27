@@ -16,7 +16,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
   rmse << 0, 0, 0, 0;
 
   // Calculate RMSE over the whole measurement
-  for(int i=0; i < estimations.size(); i++)
+  for(unsigned int i=0; i < estimations.size(); i++)
   {
      // Calculate residual which is difference of estimation to 
      // ground truth
