@@ -25,9 +25,6 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &P_in, MatrixXd &F_in,
 }
 
 void KalmanFilter::Predict() {
-  /**
-   * TODO: predict the state
-   */
   // To predict the state, we need to use the following equations. 
   // X' = F X; where v is random acceleration vector
   // P' = F P F + Q; where Q is the process noise covariance matrix
@@ -38,33 +35,27 @@ void KalmanFilter::Predict() {
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
-  /**
-   * TODO: update the state by using Kalman Filter equations
-   */
+  // Calculate the error
   VectorXd y = z - (H_ * x_); 
-  MatrixXd Htranspose = H_.transpose();
-  MatrixXd S = H_ * P_ * Htranspose + R_;
-  MatrixXd Sinverse = S.inverse(); 
-  MatrixXd K = P_ * Htranspose * Sinverse; 
-
-  x_ = x_ + K * y;
-  long x_size = x_.size();
-  MatrixXd I = MatrixXd::Identity(x_size, x_size);
-  P_ = (I - K * H_) * P_;
+  
+  // Call UpdateStates with the error as input
+  UpdateStates(y);
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-  /**
-   * TODO: update the state by using Extended Kalman Filter equations
-   */
-  // y = z - h(x');
+  // Calculates the error according to the following
+  // y = z - h(x')
 
+  // calculate h(x') given the x_ vector
   VectorXd hx(3); 
   hx << sqrt((x_[0]*x_[0])+(x_[1]*x_[1])),
         atan2(x_[1], x_[0]),
         ((x_[0]*x_[2])+(x_[1]*x_[3]))/sqrt((x_[0]*x_[0])+(x_[1]*x_[1]));
 
   VectorXd y = z - hx;
+  // values ot y[1] can be over pi or below -pi; however, EKF expects
+  // this value to be between -pi and pi. Therefore, if it's above pi, 
+  // 2*pi is subtracted, and if it's below -pi, 2*pi is added. 
   if(y[1] > M_PI)
   {
     y(1) -= 2*M_PI;
@@ -74,6 +65,13 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     y[1] += 2*M_PI;
   }
 
+  // Call UpdateStates with the error as input
+  UpdateStates(y);
+}
+
+void KalmanFilter::UpdateStates(const VectorXd &y){
+  // This is the Kalman Filter Update which applies to Matrix
+  // equations for the Kalman Filter. 
   MatrixXd Htranspose = H_.transpose();
   MatrixXd S = H_ * P_ * Htranspose + R_;
   MatrixXd Sinverse = S.inverse(); 

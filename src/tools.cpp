@@ -11,40 +11,45 @@ Tools::~Tools() {}
 
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
-  /**
-   * TODO: Calculate the RMSE here.
-   */
+  // Create the rmse structure, initialized to 0s. 
   VectorXd rmse(4); 
   rmse << 0, 0, 0, 0;
+
+  // Calculate RMSE over the whole measurement
   for(int i=0; i < estimations.size(); i++)
   {
+     // Calculate residual which is difference of estimation to 
+     // ground truth
      VectorXd residual = estimations[i]-ground_truth[i];
 
+     // calculate residual squared
      residual = residual.array()*residual.array();
 
+     // sum all values over the whole measurement so far
      rmse += residual;    
   }
   
+  // divide to total number of sample points
   rmse = rmse/estimations.size(); 
 
+  // take the square root to calculate root mean square
   rmse = rmse.array().sqrt();
 
   return rmse;
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  /**
-   * TODO:
-   * Calculate a Jacobian here.
-   */
+  // Create the Jacobian matrix
   MatrixXd Hj(3,4);
 
+  // Extract the states from state vector
   float px = x_state[0];
   float py = x_state[1];
   float vx = x_state[2];
   float vy = x_state[3]; 
   float pxySqSum = px*px + py*py;
 
+  // Set Jacobian Matrix values according to the given structure
   Hj(0,0) = px/sqrt(pxySqSum);
   Hj(0,1) = py/sqrt(pxySqSum);
   Hj(0,2) = 0;

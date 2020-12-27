@@ -36,15 +36,25 @@ class KalmanFilter {
 
   /**
    * Updates the state by using standard Kalman Filter equations
+   * Calculates error based on KF and then calls UpdateStates to 
+   * update the state. 
    * @param z The measurement at k+1
    */
   void Update(const Eigen::VectorXd &z);
 
   /**
    * Updates the state by using Extended Kalman Filter equations
+   * Calculates the error based on EKF and then calls UpdateStates
+   * to update the state. 
    * @param z The measurement at k+1
    */
   void UpdateEKF(const Eigen::VectorXd &z);
+
+  /**
+   * Contains the common equations for Kalman Filter (except for error
+   * calculation which is different for EKF and KF)
+   */
+  void UpdateStates(const Eigen::VectorXd &y); 
 
   // state vector
   Eigen::VectorXd x_;
