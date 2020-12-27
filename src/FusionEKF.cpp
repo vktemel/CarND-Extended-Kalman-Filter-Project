@@ -42,6 +42,7 @@ FusionEKF::FusionEKF() {
              0, 0, 1, 0,
              0, 0, 0, 1;
 
+  ekf_.Q_ = MatrixXd(4,4);
 }
 
 /**
@@ -104,20 +105,39 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * Prediction
    */
 
-  /**
-   * TODO: Update the state transition matrix F according to the new elapsed time.
-   * Time is measured in seconds.
-   * TODO: Update the process noise covariance matrix.
-   * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
-   */
-
+  // Calculate the time delta from the previous timestamp
   float timeUnit = 1000000.0;
   float dt = (measurement_pack.timestamp_ - previous_timestamp_)/timeUnit;
   previous_timestamp_ = measurement_pack.timestamp_;
   
+  // Set the time dependent values of state transition matrix F
   ekf_.F_(0,2) = dt;
   ekf_.F_(1,3) = dt;
   
+  // noise for ax and ay are given as 9
+  float noise_ax = 9.0;
+  float noise_ay = 9.0;
+  
+  // Calculate variances and powers of dt for updating of the 
+  // process noise covariance matrix Q
+  float var_ax = noise_ax*noise_ax; 
+  float var_ay = noise_ay*noise_ay;
+
+  float dt2 = dt*dt;
+  float dt3 = dt2*dt;
+  float dt4 = dt3*dt; 
+
+  // Set the values of the state transition matrix Q
+  ekf_.Q_(0,0) = (dt4/4)*var_ax;
+  ekf_.Q_(0,2) = (dt3/2)*var_ax;
+  ekf_.Q_(1,1) = (dt4/4)*var_ay;
+  ekf_.Q_(1,3) = (dt3/2)*var_ay;
+  ekf_.Q_(2,0) = (dt3/2)*var_ax;
+  ekf_.Q_(2,2) = dt2*var_ax;
+  ekf_.Q_(3,1) = (dt3/2)*var_ay;
+  ekf_.Q_(3,3) = dt2*var_ay;
+
+  // Call prediction step
   ekf_.Predict();
   cout << "ended prediction" << endl;
 
