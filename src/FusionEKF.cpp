@@ -36,7 +36,11 @@ FusionEKF::FusionEKF() {
    * TODO: Finish initializing the FusionEKF.
    * TODO: Set the process and measurement noises
    */
-
+  ekf_.F_ = MatrixXd(4,4);
+  ekf_.F_ << 1, 0, 0, 0,
+             0, 1, 0, 0,
+             0, 0, 1, 0,
+             0, 0, 0, 1;
 
 }
 
@@ -106,7 +110,14 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    * TODO: Update the process noise covariance matrix.
    * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
-  cout << "starting prediction" << endl;
+
+  float timeUnit = 1000000.0;
+  float dt = (measurement_pack.timestamp_ - previous_timestamp_)/timeUnit;
+  previous_timestamp_ = measurement_pack.timestamp_;
+  
+  ekf_.F_(0,2) = dt;
+  ekf_.F_(1,3) = dt;
+  
   ekf_.Predict();
   cout << "ended prediction" << endl;
 
