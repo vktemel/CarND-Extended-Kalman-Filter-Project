@@ -43,6 +43,14 @@ FusionEKF::FusionEKF() {
              0, 0, 0, 1;
 
   ekf_.Q_ = MatrixXd(4,4);
+  ekf_.Q_ << 0, 0, 0, 0,
+             0, 0, 0, 0,
+             0, 0, 0, 0,
+             0, 0, 0, 0;
+
+  // measurement matrix
+  H_laser_ << 1, 0, 0, 0,
+              0, 1, 0, 0;
 }
 
 /**
@@ -94,6 +102,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     }
     
     ekf_.x_ << px, py, 1, 1;
+
+    previous_timestamp_ = measurement_pack.timestamp_;
     
     // done initializing, no need to predict or update
     is_initialized_ = true;
@@ -127,7 +137,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float dt3 = dt2*dt;
   float dt4 = dt3*dt; 
 
-  // Set the values of the state transition matrix Q
+  // Set the values of the process noise covariance matrix Q
   ekf_.Q_(0,0) = (dt4/4)*var_ax;
   ekf_.Q_(0,2) = (dt3/2)*var_ax;
   ekf_.Q_(1,1) = (dt4/4)*var_ay;
@@ -137,10 +147,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   ekf_.Q_(3,1) = (dt3/2)*var_ay;
   ekf_.Q_(3,3) = dt2*var_ay;
 
+  cout << ekf_.Q_ << endl;
   // Call prediction step
   ekf_.Predict();
-  cout << "ended prediction" << endl;
 
+  cout << "x_ after predict = " << ekf_.x_ << endl;
   /**
    * Update
    */
@@ -156,10 +167,13 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   } else {
     // TODO: Laser updates
+    ekf_.H_ = H_laser_; 
+    ekf_.R_ = R_laser_; 
+    ekf_.Update(measurement_pack.raw_measurements_);
 
   }
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  cout << "x_ after update = " << ekf_.x_ << endl;
+  //cout << "P_ = " << ekf_.P_ << endl;
 }

@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include <iostream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -26,16 +27,34 @@ void KalmanFilter::Predict() {
   /**
    * TODO: predict the state
    */
+  // To predict the state, we need to use the following equations. 
+  // X' = F X; where v is random acceleration vector
+  // P' = F P F + Q; where Q is the process noise covariance matrix
+  x_ = F_ * x_; 
+  
+  MatrixXd Ftranspose = F_.transpose();
+  P_ = F_ * P_ * Ftranspose + Q_; 
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
   /**
    * TODO: update the state by using Kalman Filter equations
    */
+  VectorXd y = z - (H_ * x_); 
+  MatrixXd Htranspose = H_.transpose();
+  MatrixXd S = H_ * P_ * Htranspose + R_;
+  MatrixXd Sinverse = S.inverse(); 
+  MatrixXd K = P_ * Htranspose * Sinverse; 
+
+  x_ = x_ + K * y;
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
   /**
    * TODO: update the state by using Extended Kalman Filter equations
    */
+
 }
